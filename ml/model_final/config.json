@@ -1,0 +1,17 @@
+{
+  "version": "v1.0",
+  "hidden_dim": 128,
+  "n_layers": 4,
+  "dropout": 0.1,
+  "use_pocket": false,
+  "node_dim": 80,
+  "edge_dim": 10,
+  "train_size": 1600,
+  "val_size": 200,
+  "test_size": 200,
+  "best_val_rmse": 1.551,
+  "test_rmse": 1.551,
+  "test_pcc": 0.6594,
+  "epochs_trained": 46,
+  "train_time_seconds": 110.5
+}

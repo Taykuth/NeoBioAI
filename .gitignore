@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+
+# PDBBind Veri Seti (github'a atılmaz, çok büyüktür)
+P-L/
+data/
+*.sdf
+*.mol2
+
+# .env dosyası gizli tutulmalı!
+.env
+
+# Next.js / Node
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/build/
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
