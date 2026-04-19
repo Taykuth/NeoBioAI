@@ -5,7 +5,7 @@ echo  NEO-DOCK -- Frontend Baslatiliyor
 echo =========================================
 echo.
 
-cd /d "c:\Users\Taykuth\Desktop\Tez [Frontend]\neodock\frontend"
+cd /d "C:\Users\Taykuth\Desktop\Bitirme tezi\neodock\frontend"
 
 if not exist "node_modules" (
     echo [1/2] npm paketleri kuruluyor... (ilk seferde surebilir)
@@ -20,6 +20,7 @@ echo.
 echo Durdurmak icin CTRL+C
 echo.
 
+set NODE_OPTIONS=--max-old-space-size=4096
 npm run dev
 
 pause

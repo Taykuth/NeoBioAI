@@ -17,6 +17,10 @@ load_dotenv()
 from backend.auth_jwt.auth import router as auth_router
 from backend.routes.predict import router as predict_router
 from backend.routes.health import router as health_router
+from backend.routes.explain import router as explain_router
+from backend.routes.report import router as report_router
+from backend.routes.batch_csv import router as batch_csv_router
+from backend.routes.model_info import router as model_info_router
 from backend.middleware.rate_limit import RateLimitMiddleware
 
 
@@ -57,6 +61,10 @@ app.add_middleware(RateLimitMiddleware, max_requests=60, window_seconds=60)
 app.include_router(auth_router)
 app.include_router(predict_router)
 app.include_router(health_router)
+app.include_router(explain_router)
+app.include_router(report_router)
+app.include_router(batch_csv_router)
+app.include_router(model_info_router)
 
 
 @app.get("/", tags=["root"])

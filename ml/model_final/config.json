@@ -9,9 +9,9 @@
   "train_size": 1600,
   "val_size": 200,
   "test_size": 200,
-  "best_val_rmse": 1.551,
-  "test_rmse": 1.551,
-  "test_pcc": 0.6594,
-  "epochs_trained": 46,
-  "train_time_seconds": 110.5
+  "best_val_rmse": 1.5153,
+  "test_rmse": 1.5629,
+  "test_pcc": 0.6324,
+  "epochs_trained": 32,
+  "train_time_seconds": 97.2
 }
