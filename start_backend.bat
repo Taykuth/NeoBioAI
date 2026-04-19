@@ -7,7 +7,7 @@ echo =========================================
 echo.
 
 set "PYTHON=C:\Users\Taykuth\AppData\Local\Programs\Python\Python311\python.exe"
-set "PROJECT=c:\Users\Taykuth\Desktop\Tez [Frontend]\neodock"
+set "PROJECT=C:\Users\Taykuth\Desktop\Bitirme tezi\neodock"
 set "PYTHONUTF8=1"
 set "PYTHONPATH=%PROJECT%"
 

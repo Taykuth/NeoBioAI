@@ -255,6 +255,7 @@ def train_epoch(model, loader, optimizer, criterion, device):
 
 @torch.no_grad()
 def evaluate(model, loader, device):
+    """Bir loader uzerinde MSE, RMSE, Pearson R, R^2 hesapla."""
     model.eval()
     preds, targets = [], []
     for batch in loader:
@@ -266,15 +267,26 @@ def evaluate(model, loader, device):
     preds = np.concatenate(preds)
     targets = np.concatenate(targets)
 
-    rmse = np.sqrt(np.mean((preds - targets) ** 2))
+    mse = float(np.mean((preds - targets) ** 2))
+    rmse = float(np.sqrt(mse))
 
-    # Pearson correlation
     if len(preds) > 1:
-        pcc = np.corrcoef(preds, targets)[0, 1]
+        pcc = float(np.corrcoef(preds, targets)[0, 1])
+        # R^2 (coefficient of determination)
+        ss_res = float(np.sum((targets - preds) ** 2))
+        ss_tot = float(np.sum((targets - targets.mean()) ** 2))
+        r2 = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
     else:
         pcc = 0.0
+        r2 = 0.0
 
-    return {"rmse": round(rmse, 4), "pcc": round(pcc, 4), "n": len(preds)}
+    return {
+        "mse":  round(mse,  4),
+        "rmse": round(rmse, 4),
+        "pcc":  round(pcc,  4),
+        "r2":   round(r2,   4),
+        "n":    len(preds),
+    }
 
 
 # ─── Ana Fonksiyon ────────────────────────────────────────
@@ -382,27 +394,54 @@ def main():
     logger.info(f"Egitim basliyor: {args.epochs} epoch | batch={args.batch_size}")
     t_start = time.time()
 
+    # CSV log dosyasi
+    csv_path = output_dir / "train_log.csv"
+    csv_f = open(csv_path, "w", encoding="utf-8")
+    csv_f.write("epoch,tr_mse,tr_rmse,tr_r,val_mse,val_rmse,val_r,lr\n")
+
+    # Terminalde tablo basligi
+    header = (
+        "Epoch |   Tr MSE |  Tr RMSE |   Tr R  |  Val MSE | Val RMSE |  Val R  |     LR  "
+    )
+    sep = "-" * len(header)
+    logger.info(sep); logger.info(header); logger.info(sep)
+
     for epoch in range(1, args.epochs + 1):
         train_loss = train_epoch(model, train_loader, optimizer, criterion, device)
-        val_metrics = evaluate(model, val_loader, device)
+        # Train metrics (no grad, esit karsilastirma icin)
+        tr_metrics  = evaluate(model, train_loader, device)
+        val_metrics = evaluate(model, val_loader,   device)
         scheduler.step(val_metrics["rmse"])
+
+        current_lr = optimizer.param_groups[0]["lr"]
+
+        row = (
+            f"{epoch:5d} | "
+            f"{tr_metrics['mse']:8.4f} | {tr_metrics['rmse']:8.4f} | {tr_metrics['pcc']:+.4f} | "
+            f"{val_metrics['mse']:8.4f} | {val_metrics['rmse']:8.4f} | {val_metrics['pcc']:+.4f} | "
+            f"{current_lr:.1e}"
+        )
+        logger.info(row)
+
+        csv_f.write(
+            f"{epoch},{tr_metrics['mse']},{tr_metrics['rmse']},{tr_metrics['pcc']},"
+            f"{val_metrics['mse']},{val_metrics['rmse']},{val_metrics['pcc']},{current_lr}\n"
+        )
+        csv_f.flush()
 
         history.append({
             "epoch": epoch,
             "train_loss": round(train_loss, 4),
-            **val_metrics,
+            "tr_mse":  tr_metrics["mse"],
+            "tr_rmse": tr_metrics["rmse"],
+            "tr_pcc":  tr_metrics["pcc"],
+            "tr_r2":   tr_metrics["r2"],
+            "val_mse":  val_metrics["mse"],
+            "val_rmse": val_metrics["rmse"],
+            "val_pcc":  val_metrics["pcc"],
+            "val_r2":   val_metrics["r2"],
+            "lr":       current_lr,
         })
-
-        current_lr = optimizer.param_groups[0]["lr"]
-
-        if epoch % 5 == 0 or epoch == 1:
-            logger.info(
-                f"Epoch {epoch:3d}/{args.epochs} | "
-                f"Loss={train_loss:.4f} | "
-                f"Val RMSE={val_metrics['rmse']:.4f} | "
-                f"Val PCC={val_metrics['pcc']:.4f} | "
-                f"LR={current_lr:.1e}"
-            )
 
         # En iyi modeli kaydet
         if val_metrics["rmse"] < best_val_rmse:
@@ -414,6 +453,9 @@ def main():
             if patience_counter >= args.patience:
                 logger.info(f"Early stopping: {args.patience} epoch iyilesme yok")
                 break
+
+    csv_f.close()
+    logger.info(sep)
 
     train_time = time.time() - t_start
     logger.info(f"Egitim tamamlandi: {train_time:.1f}s ({train_time/60:.1f} dk)")
