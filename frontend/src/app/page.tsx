@@ -4,10 +4,11 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { Atom, Zap, Shield, BarChart3, ArrowRight, CheckCircle, ExternalLink, GraduationCap } from 'lucide-react'
 
+// Measured on this project's own 200-complex test split (ml/model_final/config.json).
+// Literature numbers (AutoDock Vina, SS-GNN) were removed: they are reported on the
+// CASF core set with protein structure as input, so they are not comparable.
 const BENCHMARK = [
-  { model: 'AutoDock Vina', pcc: '0.564', rmse: '2.850', runtime: '2500ms', highlight: false },
-  { model: 'SS-GNN (SOTA)', pcc: '0.853', rmse: '1.080', runtime: '5ms',    highlight: false },
-  { model: 'NeoBioAI (Ours)', pcc: '0.831', rmse: '1.150', runtime: '12ms', highlight: true  },
+  { model: 'NeoBioAI GINEConv (test, n=200)', pcc: '0.632', rmse: '1.563', runtime: '~3.8ms', highlight: true },
 ]
 
 const FEATURES = [
@@ -21,7 +22,7 @@ const FEATURES = [
   {
     icon: Zap,
     title: '~4ms / Molekül',
-    desc: "AutoDock Vina'ya kıyasla ~600× hızlı. Batch predict API ile yüzlerce aday saniyede değerlendirilir.",
+    desc: 'Tek CPU çekirdeğinde ölçüldü: SMILES → graf → tahmin, medyan 3,8 ms. 500 molekül tek batch’te yaklaşık 0,2 saniye.',
     color: 'from-sky-500/20 to-blue-500/20',
     border: 'border-sky-500/20',
   },
@@ -34,17 +35,19 @@ const FEATURES = [
   },
   {
     icon: BarChart3,
-    title: 'PCC = 0.66 | RMSE = 1.55',
-    desc: 'PDBBind v2020 R1 veri seti. 2000 protein-ligand kompleksi ile eğitildi.',
+    title: 'PCC = 0.63 | RMSE = 1.56',
+    desc: 'PDBBind v2020 içinden 2.000 kompleksin ligandları. Rastgele 80/10/10 ayrım, 200 örneklik test seti.',
     color: 'from-slate-500/20 to-blue-500/20',
     border: 'border-slate-500/20',
   },
 ]
 
 const DEMO_MOLECULES = [
-  { name: 'Aspirin',   smiles: 'CC(=O)Oc1ccccc1C(=O)O',           pkd: 4.27, label: 'Zayıf' },
-  { name: 'Ibuprofen', smiles: 'CC(C)Cc1ccc(cc1)C(C)C(=O)O',      pkd: 5.95, label: 'Orta' },
-  { name: 'Imatinib',  smiles: 'Cc1ccc(cc1Nc2nccc(n2)c3cccnc3)NC(=O)c4ccc(cc4)CN5CCN(CC5)C', pkd: 7.92, label: 'Güçlü' },
+  // Outputs of ml/model_final/best_model.pt. The model sees only the ligand,
+  // so these values do not refer to any specific target protein.
+  { name: 'Aspirin',   smiles: 'CC(=O)Oc1ccccc1C(=O)O',           pkd: 4.63, label: 'Zayıf' },
+  { name: 'Ibuprofen', smiles: 'CC(C)Cc1ccc(cc1)C(C)C(=O)O',      pkd: 5.70, label: 'Orta' },
+  { name: 'Imatinib',  smiles: 'Cc1ccc(cc1Nc2nccc(n2)c3cccnc3)NC(=O)c4ccc(cc4)CN5CCN(CC5)C', pkd: 7.47, label: 'Güçlü' },
 ]
 
 function AffinityBadge({ pkd }: { pkd: number }) {
@@ -139,8 +142,8 @@ export default function HomePage() {
             </h1>
 
             <p className="text-xl text-slate-400 mb-10 max-w-2xl leading-relaxed">
-              GINEConv tabanlı Graf Sinir Ağı ile protein-ligand bağlanma afinitesi (pKd) tahmini.
-              PDBBind v2020 veri seti üzerinde eğitilmiş, gerçek zamanlı tahmin yapan
+              GINEConv tabanlı Graf Sinir Ağı ile ligand yapısından bağlanma afinitesi (pKd) tahmini.
+              PDBBind v2020 verisiyle eğitilmiş, milisaniyeler içinde tahmin yapan
               <strong className="text-slate-200"> full-stack biyoinformatik platform.</strong>
             </p>
 
@@ -160,8 +163,8 @@ export default function HomePage() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 mt-16 max-w-lg">
               {[
-                { value: '0.66', label: 'PCC (Pearson)' },
-                { value: '1.55',  label: 'RMSE' },
+                { value: '0.63', label: 'PCC (Pearson)' },
+                { value: '1.56',  label: 'RMSE' },
                 { value: '~4ms', label: 'Tahmin süresi' },
               ].map((stat) => (
                 <div key={stat.label} className="text-center">
@@ -216,8 +219,11 @@ export default function HomePage() {
       {/* Benchmark */}
       <section className="py-24 px-6" style={{ background: 'rgba(15,23,41,0.5)' }}>
         <div className="max-w-7xl mx-auto">
-          <h2 className="section-title text-center">Benchmark Karşılaştırması</h2>
-          <p className="section-subtitle text-center">PDBBind veri seti üzerinde model performansları</p>
+          <h2 className="section-title text-center">Model Performansı</h2>
+          <p className="section-subtitle text-center">
+            Bu projenin kendi test ayrımında ölçüldü. Model yalnızca ligandı görüyor, hedef proteini görmüyor;
+            literatürdeki CASF sonuçlarıyla doğrudan karşılaştırılamaz.
+          </p>
           <div className="max-w-2xl mx-auto overflow-hidden rounded-2xl border border-white/8">
             <table className="w-full">
               <thead>

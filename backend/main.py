@@ -74,5 +74,5 @@ def root():
         "version": "1.0.0",
         "docs": "/docs",
         "health": "/health",
-        "description": "GINEConv tabanli protein-ligand baglama afinitesi tahmini",
+        "description": "GINEConv tabanli, ligand yapisindan baglanma afinitesi (pKd) tahmini",
     }
